@@ -1,0 +1,35 @@
+name: build-and-deploy
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        run: docker login -u "${{ secrets.DOCKER_USERNAME }}" -p "${{ secrets.DOCKER_PASSWORD }}"
+
+      - name: Build Docker Image
+        run: docker build -t strategic/hakathon-2024-image .
+
+      - name: Publish image to Docker Hub
+        run: docker push strategic/hakathon-2024-image:latest
+
+  deploy:
+    needs: build
+    runs-on: aws-ec2 # We need to create this runner in aws ec2. This runs on environment server
+    steps:
+      - name: Pull image from Docker Hub
+        run: docker pull strategic/hakathon-2024-image:latest
+
+      - name: Delete Old Container
+        run: docker rm -f reactContainer
+
+      - name: Run Docker Container
+        run: docker run -d -p 3000:80 --name reactContainer strategic/hakathon-2024-image
