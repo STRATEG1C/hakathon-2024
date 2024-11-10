@@ -1,3 +1,3 @@
-export async function getHeathCheck(): Promise<void> {
+export async function getHealthCheck(): Promise<void> {
   return Promise.resolve();
 }
