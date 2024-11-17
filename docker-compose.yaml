@@ -1,0 +1,28 @@
+services:
+  hackaton-app-php:
+    build:
+      context: .
+      dockerfile: Dockerfile-php
+    container_name: hackaton-app-php
+    ports:
+      - "9000:8080"
+    volumes:
+      - ./php:/var/www/php-app
+    networks:
+      - app-network
+
+  hackaton-app-node:
+    build:
+      context: .
+      dockerfile: Dockerfile-node
+    container_name: hackaton-app-node
+    ports:
+      - "3000:8080"
+    volumes:
+      - ./node:/var/www/node-app
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
