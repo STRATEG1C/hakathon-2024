@@ -119,24 +119,87 @@ final class GameMap
         return $paths;
     }
 
-    public function nextMoveToNearestCoin(): ?string
+    public function isFire(): bool
     {
-        $coins = $this->findPathsToCoins();
-        if (empty($coins)) {
-            return null;
-        }
+        $playerPosition = $this->getPlayerPosition();
+        $playerDirection = $this->getPlayerDirection();
 
-        $currentLength = 99;
-        $coinPosition = null;
-        foreach ($coins as $coin) {
-            if ($coin['length'] < $currentLength) {
-                $currentLength = $coin['length'];
-                var_dump(json_encode($coin['path']));
-                $coinPosition = $coin['path'][1];
+        if (
+            $playerDirection === 'S'
+        ) {
+            for ($i = 1; $i <= 4; $i++) {
+                if (
+                    isset($this->map[$playerPosition[0]+$i][$playerPosition[1]]) &&
+                    $this->map[$playerPosition[0]+$i][$playerPosition[1]][0] === 'E'
+                ) {
+                    return true;
+                }
             }
         }
 
-        return $this->getStep($coinPosition);
+        if (
+            $playerDirection === 'N'
+        ) {
+            for ($i = 1; $i <= 4; $i++) {
+                if (
+                    isset($this->map[$playerPosition[0]-$i][$playerPosition[1]]) &&
+                    $this->map[$playerPosition[0]-$i][$playerPosition[1]][0] === 'E'
+                ) {
+                    return true;
+                }
+            }
+        }
+
+        if (
+            $playerDirection === 'W'
+        ) {
+            for ($i = 1; $i <= 4; $i++) {
+                if (
+                    isset($this->map[$playerPosition[0]][$playerPosition[1]-$i]) &&
+                    $this->map[$playerPosition[0]][$playerPosition[1]-$i][0] === 'E'
+                ) {
+                    return true;
+                }
+            }
+        }
+
+        if (
+            $playerDirection === 'E'
+        ) {
+            for ($i = 1; $i <= 4; $i++) {
+                if (
+                    isset($this->map[$playerPosition[0]][$playerPosition[1]+$i]) &&
+                    $this->map[$playerPosition[0]][$playerPosition[1]+$i][0] === 'E'
+                ) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public function nextMove(): ?string
+    {
+        $coins = $this->findPathsToCoins();
+        $enemies = $this->findPathsToEnemies();
+
+        if (empty($coins) && empty($enemies)) {
+            return null;
+        }
+
+        $enemiesAndCoins = array_merge($coins, $enemies);
+
+        $length = 99;
+        $position = null;
+        foreach ($enemiesAndCoins as $item) {
+            if ($item['length'] < $length) {
+                $length = $item['length'];
+                $position = $item['path'][1];
+            }
+        }
+
+        return $this->getStep($position);
     }
 
     private function movePlayer(string $direction): ?string {
@@ -194,18 +257,11 @@ final class GameMap
             'EW' => 'L'
         ];
 
-        var_dump($playerDirection . $direction);
-
         return $crossingArray[$playerDirection . $direction] ?? 'M';
     }
 
     private function getStep(array $nextPoint): ?string {
         $position = $this->getPlayerPosition();
-
-//        var_dump($nextPoint);
-//        var_dump($position);
-//
-//        return null;
 
         if ($nextPoint[self::X] > $position[self::X]) {
             return $this->movePlayer('E');

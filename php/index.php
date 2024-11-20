@@ -50,10 +50,11 @@ post('/move', function () {
 
     $gameMap = new GameMap($field);
 
-    $playerPosition = $gameMap->getPlayerPosition();
-    $playerDirection = $gameMap->getPlayerDirection();
-
-    $move = $gameMap->nextMoveToNearestCoin();;
+    if ($gameMap->isFire()) {
+        $action = 'F';
+    } else {
+        $action = $gameMap->nextMove();
+    }
 
 //    $closestCoinPath = null;
 //
@@ -108,7 +109,7 @@ post('/move', function () {
 
 
     return [
-        'move' => $move
+        'move' => $action
     ];
 });
 
