@@ -15,21 +15,38 @@ jobs:
       - name: Login to Docker Hub
         run: docker login -u "${{ secrets.DOCKER_USERNAME }}" -p "${{ secrets.DOCKER_PASSWORD }}"
 
-      - name: Build Docker Image
-        run: docker build -t strategic/hakathon-2024-image .
+      - name: Build Image for PHP
+        run: |
+          mv node/Dockerfile-php node/Dockerfile
+          docker build -t strategic/hakathon-2024-php-app .
 
-      - name: Publish image to Docker Hub
-        run: docker push strategic/hakathon-2024-image:latest
+      - name: Publish Image for PHP to Docker Hub
+        run: docker push strategic/hakathon-2024-php-app:latest
+
+      - name: Build Image for Node
+        run: |
+          mv node/Dockerfile node/Dockerfile-php
+          mv node/Dockerfile-node node/Dockerfile
+          docker build -t strategic/hakathon-2024-node-app .
+
+      - name: Publish Image for Node to Docker Hub
+        run: docker push strategic/hakathon-2024-node-app:latest
 
   deploy:
     needs: build
-    runs-on: aws-ec2 # We need to create this runner in aws ec2. This runs on environment server
+    runs-on: aws-ec2
     steps:
-      - name: Pull image from Docker Hub
-        run: docker pull strategic/hakathon-2024-image:latest
+      - name: Pull images from Docker Hub
+        run: |
+          docker pull strategic/hakathon-2024-php-app:latest
+          docker pull strategic/hakathon-2024-node-app:latest
 
-      - name: Delete Old Container
-        run: docker rm -f nodejs-app-container
+      - name: Delete Old Containers
+        run: |
+          docker rm -f php-app-container
+          docker rm -f nodejs-app-container
 
-      - name: Run Docker Container
-        run: docker run -d -p 8080:8080 --name nodejs-app-container strategic/hakathon-2024-image
+      - name: Run Docker Containers
+        run: |
+          docker run -d -p 9000:8080 --name php-app-container strategic/hakathon-2024-php-app
+          docker run -d -p 3000:8080 --name nodejs-app-container strategic/hakathon-2024-node-app
