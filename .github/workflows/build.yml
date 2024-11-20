@@ -17,7 +17,7 @@ jobs:
 
       - name: Build Image for PHP
         run: |
-          mv node/Dockerfile-php node/Dockerfile
+          mv Dockerfile-php Dockerfile
           docker build -t strategic/hakathon-2024-php-app .
 
       - name: Publish Image for PHP to Docker Hub
@@ -25,8 +25,8 @@ jobs:
 
       - name: Build Image for Node
         run: |
-          mv node/Dockerfile node/Dockerfile-php
-          mv node/Dockerfile-node node/Dockerfile
+          mv Dockerfile Dockerfile-php
+          mv Dockerfile-node Dockerfile
           docker build -t strategic/hakathon-2024-node-app .
 
       - name: Publish Image for Node to Docker Hub
